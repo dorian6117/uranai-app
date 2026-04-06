@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MYSTICA | AI占いアプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0812;
+  --bg2: #110e1a;
+  --bg3: #1a1528;
+  --purple: #7c3aed;
+  --purple-light: #a78bfa;
+  --purple-glow: #c4b5fd;
+  --gold: #d4af7a;
+  --gold-light: #f0d9a8;
+  --text: #e8e0f0;
+  --text-muted: #9d8fb0;
+  --border: rgba(167,139,250,0.15);
+  --border-gold: rgba(212,175,122,0.25);
+  --card: rgba(26,21,40,0.8);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif JP', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 15% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 85%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 35% 55%, rgba(167,139,250,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 45%, rgba(167,139,250,0.3) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+header {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.lang-toggle {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 6px;
+}
+.lang-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  transition: all 0.2s;
+}
+.lang-btn.active {
+  border-color: var(--purple-light);
+  color: var(--purple-light);
+  background: rgba(124,58,237,0.1);
+}
+.logo-symbol {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.logo-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 30px rgba(212,175,122,0.4);
+}
+.logo-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.3em;
+  margin-top: 0.3rem;
+  font-family: 'Cinzel', serif;
+}
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 2rem auto 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 500px;
+  position: relative;
+  z-index: 10;
+}
+.tab {
+  flex: 1;
+  padding: 0.75rem 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-right: 1px solid var(--border);
+  letter-spacing: 0.05em;
+}
+.tab:last-child { border-right: none; }
+.tab.active { background: rgba(124,58,237,0.2); color: var(--purple-glow); }
+.tab:hover:not(.active) { background: rgba(124,58,237,0.05); color: var(--text); }
+main {
+  position: relative;
+  z-index: 10;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+.section { display: none; animation: fadeIn 0.4s ease; }
+.section.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  margin-bottom: 1.5rem;
+}
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.4rem;
+  margin-top: 1rem;
+}
+label:first-of-type { margin-top: 0; }
+input, select, textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  color: var(--text);
+  font-family: 'Noto Serif JP', serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--purple-light); }
+select option { background: #1a1528; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.btn-divine {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, #4c1d95, #7c3aed);
+  border: 1px solid var(--purple-light);
+  border-radius: 10px;
+  color: var(--purple-glow);
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-divine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(196,181,253,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.btn-divine:hover::before { opacity: 1; }
+.btn-divine:hover { box-shadow: 0 0 20px rgba(124,58,237,0.4); }
+.btn-divine:disabled { opacity: 0.5; cursor: not-allowed; }
+.result-card {
+  background: linear-gradient(135deg, rgba(26,21,40,0.95), rgba(15,11,28,0.95));
+  border: 1px solid var(--border-gold);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 1.5rem;
+  display: none;
+  animation: fadeIn 0.6s ease;
+}
+.result-card.show { display: block; }
+.result-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-gold);
+}
+.result-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.result-title {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+}
+.result-body {
+  font-size: 0.9rem;
+  line-height: 2;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.result-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.score-num {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 3rem;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(212,175,122,0.5);
+}
+.score-label { color: var(--text-muted); font-size: 0.8rem; }
+.loading-dots {
+  text-align: center;
+  color: var(--purple-light);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+  padding: 1rem;
+}
+.loading-dots span { animation: blink 1.2s infinite; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0%,80%,100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+.share-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+.share-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Noto Serif JP', serif;
+  transition: all 0.2s;
+  text-align: center;
+}
+.share-btn:hover { border-color: var(--purple-light); color: var(--purple-light); }
+.tarot-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 1rem 0;
+}
+.tarot-card {
+  aspect-ratio: 2/3;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a1528, #0f0b1c);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.tarot-card::before {
+  content: '✦';
+  position: absolute;
+  color: rgba(167,139,250,0.15);
+  font-size: 2rem;
+}
+.tarot-card:hover {
+  border-color: var(--purple-light);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(124,58,237,0.2);
+}
+.tarot-card.selected {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, #2d1f4a, #1a1528);
+  box-shadow: 0 0 15px rgba(212,175,122,0.2);
+}
+.tarot-card.selected::after {
+  content: '★';
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+.tarot-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+.affiliate-banner {
+  margin-top: 2rem;
+  padding: 1.2rem;
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 12px;
+  text-align: center;
+}
+.affiliate-banner p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.8rem;
+  line-height: 1.6;
+}
+.affiliate-link {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--purple-light);
+  border-radius: 20px;
+  color: var(--purple-light);
+  font-size: 0.8rem;
+  text-decoration: none;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+.affiliate-link:hover { background: rgba(124,58,237,0.15); }
+.error-msg {
+  color: #f87171;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.disclaimer {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 3rem;
+  opacity: 0.6;
+  line-height: 1.8;
+}
+@media (max-width: 480px) {
+  .two-col { grid-template-columns: 1fr; }
+  .tarot-grid { grid-template-columns: repeat(4, 1fr); }
+  .logo-title { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('ja')" id="btn-ja">日本語</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+  </div>
+  <div class="logo-symbol">🔮</div>
+  <div class="logo-title">MYSTICA</div>
+  <div class="logo-sub" id="logo-sub">AI FORTUNE TELLING</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('fortune', this)">🌟 <span data-ja="今日の運勢" data-en="Fortune">今日の運勢</span></button>
+  <button class="tab" onclick="showTab('compatibility', this)">💫 <span data-ja="相性診断" data-en="Compatibility">相性診断</span></button>
+  <button class="tab" onclick="showTab('tarot', this)">🃏 <span data-ja="タロット" data-en="Tarot">タロット</span></button>
+</div>
+
+<main>
+
+  <!-- 今日の運勢 -->
+  <div class="section active" id="section-fortune">
+    <div class="card">
+      <div class="section-title" data-ja="✦ 今日の運勢を占う ✦" data-en="✦ Today's Fortune ✦">✦ 今日の運勢を占う ✦</div>
+      <div class="two-col">
+        <div>
+          <label data-ja="お名前" data-en="Your Name">お名前</label>
+          <input type="text" id="f-name" placeholder="山田 太郎">
+        </div>
+        <div>
+          <label data-ja="生年月日" data-en="Date of Birth">生年月日</label>
+          <input type="date" id="f-birth">
+        </div>
+      </div>
+      <div class="two-col">
+        <div>
+          <label data-ja="星座" data-en="Zodiac Sign">星座</label>
+          <select id="f-zodiac">
+            <option value="">-- 選択 --</option>
+            <option value="牡羊座">牡羊座 / Aries</option>
+            <option value="牡牛座">牡牛座 / Taurus</option>
+            <option value="双子座">双子座 / Gemini</option>
+            <option value="蟹座">蟹座 / Cancer</option>
+            <option value="獅子座">獅子座 / Leo</option>
+            <option value="乙女座">乙女座 / Virgo</option>
+            <option value="天秤座">天秤座 / Libra</option>
+            <option value="蠍座">蠍座 / Scorpio</option>
+            <option value="射手座">射手座 / Sagittarius</option>
+            <option value="山羊座">山羊座 / Capricorn</option>
+            <option value="水瓶座">水瓶座 / Aquarius</option>
+            <option value="魚座">魚座 / Pisces</option>
+          </select>
+        </div>
+        <div>
+          <label data-ja="血液型" data-en="Blood Type">血液型</label>
+          <select id="f-blood">
+            <option value="">-- 選択 --</option>
+            <option value="A型">A型</option>
+            <option value="B型">B型</option>
+            <option value="O型">O型</option>
+            <option value="AB型">AB型</option>
+          </select>
+        </div>
+      </div>
+      <label data-ja="今日のテーマ" data-en="Today's Theme">今日のテーマ</label>
+      <select id="f-theme">
+        <option value="総合運">総合運 / Overall</option>
+        <option value="恋愛運">恋愛運 / Love</option>
+        <option value="仕事運">仕事運 / Career</option>
+        <option value="金運">金運 / Money</option>
+        <option value="健康運">健康運 / Health</option>
+      </select>
+      <button class="btn-divine" onclick="getFortune()" id="btn-fortune">
+        ✦ <span data-ja="星に問う" data-en="Consult the Stars">星に問う</span> ✦
+      </button>
+    </div>
+    <div class="result-card" id="result-fortune">
+      <div class="result-header">
+        <div class="result-icon">🌟</div>
+        <div class="result-title" id="result-fortune-title">TODAY'S FORTUNE</div>
+      </div>
+      <div class="result-body" id="result-fortune-body"></div>
+      <div class="share-row">
+        <button class="share-btn" onclick="shareResult('fortune')">🐦 X でシェア</button>
+        <button class="share-btn" onclick="copyResult('fortune')">📋 コピー</button>
+      </div>
+    </div>
+    <div class="affiliate-banner">
+      <p data-ja="AIをもっと活用したい方へ。Claude Proで占い以外にも様々な相談が可能です。" data-en="Want to explore more AI possibilities? Try Claude Pro for unlimited conversations.">AIをもっと活用したい方へ。Claude Proで占い以外にも様々な相談が可能です。</p>
+      <a href="https://claude.ai" class="affiliate-link" target="_blank">Claude Pro を試す →</a>
+    </div>
+  </div>
+
+  <!-- 相性診断 -->
+  <div class="section" id="section-compatibility">
+    <div class="card">
+      <div class="section-title" data-ja="✦ 二人の相性を診断 ✦" data-en="✦ Compatibility Reading ✦">✦ 二人の相性を診断 ✦</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div>
+          <div style="text-align:center;color:var(--purple-light);font-size:0.75rem;letter-spacing:0.2em;margin-bottom:0.8rem;">PERSON A</div>
+          <label data-ja="お名前" data-en="Name">お名前</label>
+          <input type="text" id="c-name1" placeholder="あなたの名前">
+          <label data-ja="星座" data-en="Zodiac">星座</label>
+          <select id="c-zodiac1">
+            <option value="">-- 選択 --</option>
+            <option>牡羊座</option><option>牡牛座</option><option>双子座</option><option>蟹座</option>
+            <option>獅子座</option><option>乙女座</option><option>天秤座</option><option>蠍座</option>
+            <option>射手座</option><option>山羊座</option><option>水瓶座</option><option>魚座</option>
+          </select>
+          <label data-ja="血液型" data-en="Blood Type">血液型</label>
+          <select id="c-blood1">
+            <option value="">-- 選択 --</option>
+            <option>A型</option><option>B型</option><option>O型</option><option>AB型</option>
+          </select>
+        </div>
+        <div>
+          <div style="text-align:center;color:var(--gold);font-size:0.75rem;letter-spacing:0.2em;margin-bottom:0.8rem;">PERSON B</div>
+          <label data-ja="お名前" data-en="Name">お名前</label>
+          <input type="text" id="c-name2" placeholder="相手の名前">
+          <label data-ja="星座" data-en="Zodiac">星座</label>
+          <select id="c-zodiac2">
+            <option value="">-- 選択 --</option>
+            <option>牡羊座</option><option>牡牛座</option><option>双子座</option><option>蟹座</option>
+            <option>獅子座</option><option>乙女座</option><option>天秤座</option><option>蠍座</option>
+            <option>射手座</option><option>山羊座</option><option>水瓶座</option><option>魚座</option>
+          </select>
+          <label data-ja="血液型" data-en="Blood Type">血液型</label>
+          <select id="c-blood2">
+            <option value="">-- 選択 --</option>
+            <option>A型</option><option>B型</option><option>O型</option><option>AB型</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-divine" onclick="getCompatibility()">
+        ✦ <span data-ja="縁を紐解く" data-en="Reveal Your Bond">縁を紐解く</span> ✦
+      </button>
+    </div>
+    <div class="result-card" id="result-compatibility">
+      <div class="result-header">
+        <div class="result-icon">💫</div>
+        <div class="result-title">COMPATIBILITY SCORE</div>
+        <div class="result-score">
+          <div>
+            <div class="score-num" id="compat-score">--</div>
+            <div class="score-label">/ 100</div>
+          </div>
+        </div>
+      </div>
+      <div class="result-body" id="result-compat-body"></div>
+      <div class="share-row">
+        <button class="share-btn" onclick="shareResult('compatibility')">🐦 X でシェア</button>
+        <button class="share-btn" onclick="copyResult('compatibility')">📋 コピー</button>
+      </div>
+    </div>
+    <div class="affiliate-banner">
+      <p data-ja="恋愛・人間関係についてもっと深く相談したいなら、AIカウンセリングもおすすめです。" data-en="Want deeper relationship insights? Try AI counseling for more personal guidance.">恋愛・人間関係についてもっと深く相談したいなら、AIカウンセリングもおすすめです。</p>
+      <a href="https://claude.ai" class="affiliate-link" target="_blank">Claude Pro を試す →</a>
+    </div>
+  </div>
+
+  <!-- タロット -->
+  <div class="section" id="section-tarot">
+    <div class="card">
+      <div class="section-title" data-ja="✦ タロットカード占い ✦" data-en="✦ Tarot Card Reading ✦">✦ タロットカード占い ✦</div>
+      <label data-ja="お悩み・質問" data-en="Your Question">お悩み・質問</label>
+      <textarea id="t-question" rows="3" placeholder="例：仕事について、恋愛について、今後の方向性について..."></textarea>
+      <div style="margin-top:1.2rem;">
+        <div class="tarot-hint" data-ja="心を静めて、1枚のカードを選んでください" data-en="Clear your mind and choose one card">心を静めて、1枚のカードを選んでください</div>
+        <div class="tarot-grid" id="tarot-grid"></div>
+      </div>
+      <button class="btn-divine" onclick="getTarot()" id="btn-tarot">
+        ✦ <span data-ja="カードを開く" data-en="Reveal the Card">カードを開く</span> ✦
+      </button>
+    </div>
+    <div class="result-card" id="result-tarot">
+      <div class="result-header">
+        <div class="result-icon" id="tarot-card-icon">🃏</div>
+        <div class="result-title" id="tarot-card-name">THE CARD</div>
+      </div>
+      <div class="result-body" id="result-tarot-body"></div>
+      <div class="share-row">
+        <button class="share-btn" onclick="shareResult('tarot')">🐦 X でシェア</button>
+        <button class="share-btn" onclick="copyResult('tarot')">📋 コピー</button>
+      </div>
+    </div>
+    <div class="affiliate-banner">
+      <p data-ja="タロットや占いをもっと学びたい方に。AIで毎日新しい知識を深めましょう。" data-en="Want to learn more about tarot and divination? Explore with AI every day.">タロットや占いをもっと学びたい方に。AIで毎日新しい知識を深めましょう。</p>
+      <a href="https://claude.ai" class="affiliate-link" target="_blank">Claude Pro を試す →</a>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    ※ このアプリの占い結果はAIが生成するエンターテイメントコンテンツです。<br>
+    科学的根拠はなく、実際の意思決定の参考にはなりません。<br>
+    ※ All fortune readings are AI-generated entertainment content only.
+  </div>
+</main>
+
+<script>
+let currentLang = 'ja';
+let selectedTarotCard = null;
+
+const tarotCards = [
+  {icon:'☀️', name:'The Sun', nameJa:'太陽'},
+  {icon:'🌙', name:'The Moon', nameJa:'月'},
+  {icon:'⭐', name:'The Star', nameJa:'星'},
+  {icon:'⚡', name:'The Tower', nameJa:'塔'},
+  {icon:'🌍', name:'The World', nameJa:'世界'},
+  {icon:'👑', name:'The Emperor', nameJa:'皇帝'},
+  {icon:'💀', name:'Death', nameJa:'死神'},
+  {icon:'⚖️', name:'Justice', nameJa:'正義'},
+  {icon:'🔥', name:'Strength', nameJa:'力'},
+  {icon:'🎡', name:'Wheel of Fortune', nameJa:'運命の輪'},
+];
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btn-ja').classList.toggle('active', lang === 'ja');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.querySelectorAll('[data-ja]').forEach(el => {
+    el.textContent = lang === 'ja' ? el.dataset.ja : el.dataset.en;
+  });
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+function buildTarotGrid() {
+  const grid = document.getElementById('tarot-grid');
+  grid.innerHTML = '';
+  tarotCards.forEach((card, i) => {
+    const div = document.createElement('div');
+    div.className = 'tarot-card';
+    div.onclick = () => {
+      document.querySelectorAll('.tarot-card').forEach(c => c.classList.remove('selected'));
+      div.classList.add('selected');
+      selectedTarotCard = tarotCards[i];
+    };
+    grid.appendChild(div);
+  });
+}
+
+// ★ここがVercel経由に変わった核心部分★
+async function callClaude(prompt) {
+  // ローカル(file://)で開いた場合はAPIを直接呼ぶ
+  const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const url = isLocal ? 'https://api.anthropic.com/v1/messages' : '/api/fortune';
+
+  if (isLocal) {
+    // ローカルテスト用: APIキーを直接入力するダイアログを出す
+    const apiKey = sessionStorage.getItem('mystica_api_key') || prompt_apiKey();
+    if (!apiKey) throw new Error('APIキーが入力されていません');
+    sessionStorage.setItem('mystica_api_key', apiKey);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      sessionStorage.removeItem('mystica_api_key');
+      throw new Error(err.error?.message || 'API error: ' + res.status);
+    }
+    const data = await res.json();
+    if (!data.content?.[0]?.text) throw new Error('APIからの応答が不正です');
+    return data.content[0].text;
+
+  } else {
+    // Vercel経由（本番）
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'API error: ' + res.status);
+    }
+    const data = await res.json();
+    if (!data.result) throw new Error('サーバーからの応答が不正です');
+    return data.result;
+  }
+}
+
+function prompt_apiKey() {
+  return window.prompt('ローカルテスト用: Anthropic APIキーを入力してください（sk-ant-...）
+※Vercel公開時は不要です');
+}
+
+function showLoading(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('show');
+  const body = el.querySelector('.result-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div class="loading-dots">
+      <span>●</span><span>●</span><span>●</span>
+      <div style="margin-top:0.5rem;">${currentLang === 'ja' ? '星々に問いかけています...' : 'Consulting the stars...'}</div>
+    </div>`;
+}
+
+function showError(bodyId, msg) {
+  const el = document.getElementById(bodyId);
+  if (!el) return;
+  el.innerHTML = `<div class="error-msg">${msg}</div>`;
+  const card = el.closest('.result-card');
+  if (card) card.classList.add('show');
+}
+
+async function getFortune() {
+  const name = document.getElementById('f-name').value || (currentLang === 'ja' ? 'あなた' : 'You');
+  const zodiac = document.getElementById('f-zodiac').value || '不明';
+  const blood = document.getElementById('f-blood').value || '不明';
+  const theme = document.getElementById('f-theme').value;
+  const btn = document.getElementById('btn-fortune');
+  btn.disabled = true;
+  showLoading('result-fortune');
+  const isJa = currentLang === 'ja';
+  const prompt = isJa
+    ? `あなたは神秘的な占い師です。${name}さんの今日の${theme}を占ってください。星座：${zodiac}、血液型：${blood}。神秘的で詩的な文体で200〜250文字程度、ラッキーカラー・ラッキーナンバー・今日のアドバイスを含めてください。エンターテイメントとして楽しめる内容にしてください。`
+    : `You are a mystical fortune teller. Provide today's ${theme} fortune for ${name}. Zodiac: ${zodiac}, Blood Type: ${blood}. Write in a mystical, poetic style ~150 words. Include a lucky color, lucky number, and advice for today.`;
+  try {
+    const result = await callClaude(prompt);
+    document.getElementById('result-fortune-title').textContent = isJa ? `${name}さんの${theme}` : `${name}'s ${theme}`;
+    document.getElementById('result-fortune-body').textContent = result;
+  } catch(e) {
+    showError('result-fortune-body', isJa ? 'エラーが発生しました。しばらく経ってから再度お試しください。' : 'An error occurred. Please try again later.');
+  }
+  btn.disabled = false;
+}
+
+async function getCompatibility() {
+  const n1 = document.getElementById('c-name1').value || 'A';
+  const n2 = document.getElementById('c-name2').value || 'B';
+  const z1 = document.getElementById('c-zodiac1').value || '不明';
+  const z2 = document.getElementById('c-zodiac2').value || '不明';
+  const b1 = document.getElementById('c-blood1').value || '不明';
+  const b2 = document.getElementById('c-blood2').value || '不明';
+  showLoading('result-compatibility');
+  const isJa = currentLang === 'ja';
+  const prompt = isJa
+    ? `占い師として二人の相性を診断してください。${n1}：星座${z1}、血液型${b1} / ${n2}：星座${z2}、血液型${b2}。最初の行に「スコア:XX」（0〜100）を記載し、その後200文字程度で神秘的に解説してください。二人の強みと注意点を含めてください。`
+    : `As a fortune teller, analyze compatibility. ${n1}: ${z1}, ${b1} / ${n2}: ${z2}, ${b2}. First line must be "Score: XX" (0-100). Then ~150 words mystical description with strengths and cautions.`;
+  try {
+    const result = await callClaude(prompt);
+    const lines = result.split('\n');
+    const match = lines[0].match(/-?\d+/);
+    const score = match ? Math.min(100, Math.max(0, parseInt(match[0]))) : 75;
+    document.getElementById('compat-score').textContent = score;
+    document.getElementById('result-compat-body').textContent = lines.slice(1).join('\n').trim();
+  } catch(e) {
+    showError('result-compat-body', isJa ? 'エラーが発生しました。' : 'An error occurred.');
+  }
+}
+
+async function getTarot() {
+  if (!selectedTarotCard) {
+    alert(currentLang === 'ja' ? 'カードを1枚選んでください' : 'Please select a card');
+    return;
+  }
+  const question = document.getElementById('t-question').value || (currentLang === 'ja' ? '人生全般' : 'general guidance');
+  const btn = document.getElementById('btn-tarot');
+  btn.disabled = true;
+  showLoading('result-tarot');
+  const isJa = currentLang === 'ja';
+  const cardName = isJa ? selectedTarotCard.nameJa : selectedTarotCard.name;
+  const prompt = isJa
+    ? `タロット占い師として「${cardName}」のカードを引いた場合の解釈をしてください。質問：${question}。神秘的で詩的な文体で200〜250文字、今後取るべき行動のヒントを含めてください。`
+    : `As a tarot reader, interpret the "${cardName}" card for: ${question}. Write ~150 words in mystical, poetic style with guidance on actions to take.`;
+  try {
+    const result = await callClaude(prompt);
+    document.getElementById('tarot-card-icon').textContent = selectedTarotCard.icon;
+    document.getElementById('tarot-card-name').textContent = `${selectedTarotCard.nameJa} / ${selectedTarotCard.name}`;
+    document.getElementById('result-tarot-body').textContent = result;
+  } catch(e) {
+    showError('result-tarot-body', isJa ? 'エラーが発生しました。' : 'An error occurred.');
+  }
+  btn.disabled = false;
+}
+
+function shareResult(type) {
+  const ids = { fortune: 'result-fortune-body', compatibility: 'result-compat-body', tarot: 'result-tarot-body' };
+  const text = document.getElementById(ids[type])?.textContent || '';
+  const tweet = encodeURIComponent(`✨ MYSTICAで占ってみました ✨\n\n${text.slice(0, 100)}...\n\n#MYSTICA #AI占い`);
+  window.open(`https://twitter.com/intent/tweet?text=${tweet}`, '_blank');
+}
+
+function copyResult(type) {
+  const ids = { fortune: 'result-fortune-body', compatibility: 'result-compat-body', tarot: 'result-tarot-body' };
+  const text = document.getElementById(ids[type])?.textContent || '';
+  navigator.clipboard.writeText(text).then(() => {
+    alert(currentLang === 'ja' ? 'コピーしました！' : 'Copied!');
+  });
+}
+
+buildTarotGrid();
+</script>
+</body>
+</html>
